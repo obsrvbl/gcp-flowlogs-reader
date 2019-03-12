@@ -400,6 +400,29 @@ class ReaderTests(TestCase):
             filter_=expression, page_size=1000
         )
 
+    def test_multiple_names(self, mock_Client):
+        mock_Client.return_value.project = 'yoyodyne-102010'
+
+        reader = Reader(
+            start_time=datetime(2018, 4, 3, 9, 51, 22),
+            end_time=datetime(2018, 4, 3, 10, 51, 33),
+            log_names=['my_log', 'your_log'],
+        )
+        list(reader)
+
+        # Multiple log names get OR-ed together
+        expression = (
+            'resource.type="gce_subnetwork" AND '
+            '(logName="my_log" OR logName="your_log") AND '
+            'Timestamp >= "2018-04-03T09:50:22Z" AND '
+            'Timestamp < "2018-04-03T10:52:33Z" AND '
+            'jsonPayload.start_time >= "2018-04-03T09:51:22Z" AND '
+            'jsonPayload.start_time < "2018-04-03T10:51:33Z"'
+        )
+        mock_Client.return_value.list_entries.assert_called_once_with(
+            filter_=expression, page_size=1000
+        )
+
 
 class AggregationTests(TestCase):
     def test_basic(self):
