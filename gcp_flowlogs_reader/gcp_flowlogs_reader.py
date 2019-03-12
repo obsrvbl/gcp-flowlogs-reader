@@ -123,7 +123,7 @@ class FlowRecord:
 class Reader:
     def __init__(
         self,
-        log_name=None,
+        log_names=None,
         start_time=None,
         end_time=None,
         filters=None,
@@ -160,10 +160,12 @@ class Reader:
 
         # The default log name is based on the project name, but it can
         # be overridden by providing it explicitly.
-        if log_name:
-            self.log_name = log_name
+        if log_names:
+            self.log_names = log_names
         else:
-            self.log_name = BASE_LOG_NAME.format(self.logging_client.project)
+            self.log_names = [
+                BASE_LOG_NAME.format(self.logging_client.project)
+            ]
 
         # If no time bounds are given, use the last hour.
         self.end_time = end_time or datetime.utcnow()
@@ -191,9 +193,12 @@ class Reader:
         payload_start = self._format_dt(self.start_time)
         payload_end = self._format_dt(self.end_time)
 
+        name_filter = ' OR '.join(
+            'logName="{}"'.format(name) for name in self.log_names
+        )
         filters = self.filters[:] + [
             'resource.type="gce_subnetwork"',
-            'logName="{}"'.format(self.log_name),
+            '({})'.format(name_filter),
             'Timestamp >= "{}"'.format(timestamp_start),
             'Timestamp < "{}"'.format(timestamp_end),
             'jsonPayload.start_time >= "{}"'.format(payload_start),

@@ -113,7 +113,7 @@ def get_reader(args):
         kwargs['filters'] = args.filters.split(' AND ')
 
     kwargs['service_account_json'] = args.credentials_file
-    kwargs['log_name'] = args.log_name
+    kwargs['log_names'] = args.log_name
 
     return Reader(**kwargs)
 
@@ -162,6 +162,7 @@ def main(argv=None):
     parser.add_argument(
         '--log-name',
         type=str,
+        nargs='+',
         help='name of the StackDriver log name to read '
         '(default matches the project name)'
     )
