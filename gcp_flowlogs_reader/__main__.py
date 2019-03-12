@@ -113,6 +113,7 @@ def get_reader(args):
         kwargs['filters'] = args.filters.split(' AND ')
 
     kwargs['service_account_json'] = args.credentials_file
+    kwargs['projects'] = args.project
     kwargs['log_names'] = args.log_name
 
     return Reader(**kwargs)
@@ -160,9 +161,16 @@ def main(argv=None):
         '(default uses the GOOGLE_APPLICATION_CREDENTIALS variable)'
     )
     parser.add_argument(
+        '--project',
+        type=str,
+        action='append',
+        help='name of the Google Cloud project name '
+        '(defaults to the one in the credentials)'
+    )
+    parser.add_argument(
         '--log-name',
         type=str,
-        nargs='+',
+        action='append',
         help='name of the StackDriver log name to read '
         '(default matches the project name)'
     )

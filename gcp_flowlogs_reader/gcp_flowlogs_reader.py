@@ -123,6 +123,7 @@ class FlowRecord:
 class Reader:
     def __init__(
         self,
+        projects=None,
         log_names=None,
         start_time=None,
         end_time=None,
@@ -158,14 +159,15 @@ class Reader:
         else:
             self.logging_client = gcp_logging.Client(**kwargs)
 
+        # By default we use the project in the logging client
+        self.projects = projects or [self.logging_client.project]
+
         # The default log name is based on the project name, but it can
         # be overridden by providing it explicitly.
         if log_names:
             self.log_names = log_names
         else:
-            self.log_names = [
-                BASE_LOG_NAME.format(self.logging_client.project)
-            ]
+            self.log_names = [BASE_LOG_NAME.format(p) for p in self.projects]
 
         # If no time bounds are given, use the last hour.
         self.end_time = end_time or datetime.utcnow()
@@ -207,7 +209,9 @@ class Reader:
         expression = ' AND '.join(filters)
 
         iterator = self.logging_client.list_entries(
-            filter_=expression, page_size=self.page_size
+            filter_=expression,
+            page_size=self.page_size,
+            projects=self.projects,
         )
         for page in iterator.pages:
             for flow_entry in page:

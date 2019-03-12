@@ -25,7 +25,7 @@ usage: gcp_flowlogs_reader [-h] [--start-time START_TIME]
                            [--end-time END_TIME] [--time-format TIME_FORMAT]
                            [--filters FILTERS]
                            [--credentials-file CREDENTIALS_FILE]
-                           [--log-name LOG_NAME [LOG_NAME ...]]
+                           [--project PROJECT] [--log-name LOG_NAME]
                            [action [action ...]]
 ```
 
@@ -134,9 +134,10 @@ print(len(ip_set))
 ```
 
 You may pass in these keywords as arguments to affect what flows are returned:
-* `log_names` - a list of log names to read; defaults to `[projects/{#project_id}/logs/compute.googleapis.com%2Fvpc_flows]`
 * `start_time` - defaults to one hour ago
 * `end_time` - defaults to now
+* `projects` - a list of projects to read from; defaults to the project ID for the provided credentials
+* `log_names` - a list of log names to read; defaults to `[projects/{#project_id}/logs/compute.googleapis.com%2Fvpc_flows]`
 * `filters` - optional list of filters to apply
 * `logging_client` - a custom `google.cloud.logging.Client` instance
 * `service_account_json` - the path to a service account JSON credential file

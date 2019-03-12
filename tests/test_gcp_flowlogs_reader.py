@@ -397,7 +397,9 @@ class ReaderTests(TestCase):
             'jsonPayload.start_time < "2018-04-03T10:51:33Z"'
         )
         mock_Client.return_value.list_entries.assert_called_once_with(
-            filter_=expression, page_size=1000
+            filter_=expression,
+            projects=['yoyodyne-102010'],
+            page_size=1000
         )
 
     def test_multiple_names(self, mock_Client):
@@ -420,7 +422,36 @@ class ReaderTests(TestCase):
             'jsonPayload.start_time < "2018-04-03T10:51:33Z"'
         )
         mock_Client.return_value.list_entries.assert_called_once_with(
-            filter_=expression, page_size=1000
+            filter_=expression,
+            projects=['yoyodyne-102010'],
+            page_size=1000
+        )
+
+    def test_multiple_projects(self, mock_Client):
+        mock_Client.return_value.project = 'yoyodyne-102010'
+
+        reader = Reader(
+            start_time=datetime(2018, 4, 3, 9, 51, 22),
+            end_time=datetime(2018, 4, 3, 10, 51, 33),
+            projects=['x', 'y'],
+        )
+        list(reader)
+
+        # Multiple log names get OR-ed together
+        expression = (
+            'resource.type="gce_subnetwork" AND '
+            '(logName="projects/x/logs/compute.googleapis.com%2Fvpc_flows" OR '
+            'logName="projects/y/logs/compute.googleapis.com%2Fvpc_flows") '
+            'AND '
+            'Timestamp >= "2018-04-03T09:50:22Z" AND '
+            'Timestamp < "2018-04-03T10:52:33Z" AND '
+            'jsonPayload.start_time >= "2018-04-03T09:51:22Z" AND '
+            'jsonPayload.start_time < "2018-04-03T10:51:33Z"'
+        )
+        mock_Client.return_value.list_entries.assert_called_once_with(
+            filter_=expression,
+            projects=['x', 'y'],
+            page_size=1000
         )
 
 
@@ -565,4 +596,4 @@ class MainCLITests(TestCase):
                 cli_module.main(argv)
                 actual_len = len(mock_stdout.getvalue().splitlines())
         expected_len = 4
-        self.assertEqual(actual_len, expected_len)  # TODO: more thorough test
+        self.assertEqual(actual_len, expected_len)
